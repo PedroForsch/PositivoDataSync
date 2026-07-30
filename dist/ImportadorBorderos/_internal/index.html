@@ -1,0 +1,628 @@
+<!--
+# ============================================================
+# Importador de Borderos - Positivo DataSync
+# Autor: Pedro Henrique Forsch
+# Contato: pedrohenriqueforsch@gmail.com
+# ============================================================
+-->
+
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Positivo DataSync</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #003f87;
+    --primary-container: #0056b3;
+    --on-primary: #ffffff;
+    --secondary: #00658d;
+    --secondary-container: #2dbcfe;
+    --on-secondary-container: #004866;
+    --error: #ba1a1a;
+    --on-error: #ffffff;
+    --error-container: #ffdad6;
+    --on-error-container: #93000a;
+    --success: #1e7d32;
+    --success-container: #dff3e2;
+    --surface: #f8f9fa;
+    --surface-container-lowest: #ffffff;
+    --surface-container-low: #f3f4f5;
+    --surface-container: #edeeef;
+    --surface-container-high: #e7e8e9;
+    --on-surface: #191c1d;
+    --on-surface-variant: #424752;
+    --outline: #727784;
+    --outline-variant: #c2c6d4;
+    --terminal-bg: #1e1e1e;
+    --font-body: "Hanken Grotesk", -apple-system, "Segoe UI", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", "Consolas", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--surface);
+    color: var(--on-surface);
+    font-family: var(--font-body);
+    overflow: hidden;
+  }
+
+  .app { display: flex; height: 100vh; }
+
+  /* -------- Sidebar -------- */
+  .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--surface-container-lowest);
+    border-right: 1px solid var(--outline-variant);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 12px;
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 8px 20px 8px;
+  }
+
+  .logo-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--primary-container);
+    color: var(--on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .brand-title {
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--primary);
+    line-height: 1.2;
+  }
+
+  .brand-subtitle {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+  }
+
+  .nav { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--on-surface-variant);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    border-right: 4px solid transparent;
+    transition: background .15s, color .15s;
+  }
+
+  .nav-item:hover { background: var(--surface-container); }
+
+  .nav-item.active {
+    background: var(--surface-container-low);
+    color: var(--primary);
+    font-weight: 700;
+    border-right-color: var(--primary);
+  }
+
+  .nav-item .badge-count {
+    margin-left: auto;
+    background: var(--primary-container);
+    color: var(--on-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    min-width: 18px;
+    text-align: center;
+  }
+
+  .sidebar-footer {
+    padding-top: 12px;
+    border-top: 1px solid var(--outline-variant);
+  }
+
+  .btn-primary {
+    width: 100%;
+    height: 42px;
+    background: var(--primary-container);
+    color: var(--on-primary);
+    border: none;
+    border-radius: 6px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  .btn-primary:hover:not(:disabled) { background: var(--primary); }
+
+  .btn-primary:disabled {
+    background: var(--outline-variant);
+    color: var(--on-surface-variant);
+    cursor: not-allowed;
+  }
+
+  /* -------- Main -------- */
+  .main-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .topbar {
+    height: 52px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--outline-variant);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 10px;
+  }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--on-surface-variant);
+    background: var(--surface-container-low);
+    border: 1px solid var(--outline-variant);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  .content {
+    flex: 1;
+    padding: 24px 28px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 0;
+  }
+
+  .tab-panel { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+
+  .tab-panel h1 { font-size: 26px; font-weight: 700; margin: 0; }
+
+  .tab-panel p.desc {
+    margin: 0 0 6px 0;
+    color: var(--on-surface-variant);
+    font-size: 14px;
+  }
+
+  /* -------- Drop zone -------- */
+  .dropzone {
+    border: 2px dashed var(--outline-variant);
+    border-radius: 12px;
+    background: var(--surface-container-lowest);
+    padding: 26px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--primary-container);
+    background: rgba(0, 86, 179, 0.06);
+  }
+
+  .dropzone .icon-circle {
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    background: var(--secondary-container);
+    color: var(--on-secondary-container);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dropzone .titulo { font-weight: 600; font-size: 15px; }
+  .dropzone .subtitulo { font-size: 12px; color: var(--on-surface-variant); font-family: var(--font-mono); }
+
+  .btn-outline {
+    margin-top: 4px;
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--primary-container);
+    color: var(--primary-container);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .btn-outline:hover { background: rgba(0, 86, 179, 0.08); }
+
+  /* -------- Chips (arquivos selecionados) -------- */
+  .chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 76px;
+    overflow-y: auto;
+  }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-container-low);
+    border: 1px solid var(--outline-variant);
+    border-radius: 6px;
+    padding: 5px 8px 5px 12px;
+    font-size: 13px;
+  }
+
+  .chip button {
+    border: none;
+    background: transparent;
+    color: var(--on-surface-variant);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    padding: 2px 4px;
+  }
+
+  .chip button:hover { color: var(--error); }
+
+  .contagem {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--on-surface-variant);
+  }
+
+  /* -------- Console -------- */
+  .console-section {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .console-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .console-header .badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    background: var(--surface-container-high);
+    border-radius: 4px;
+    padding: 3px 8px;
+    color: var(--on-surface-variant);
+  }
+
+  .console {
+    flex: 1;
+    min-height: 120px;
+    background: var(--terminal-bg);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: #d4d4d4;
+    line-height: 1.6;
+  }
+
+  .console div { white-space: pre-wrap; word-break: break-word; }
+
+  /* -------- Barra de progresso -------- */
+  .progress-container {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 2px;
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 8px;
+    background: var(--surface-container-high);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--primary-container);
+    transition: width .2s ease;
+  }
+
+  .progress-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--on-surface-variant);
+  }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--outline-variant); border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v2H4V6zm0 4h16v2H4v-2zm0 4h16v2H4v-2zm0 4h10v2H4v-2z" fill="currentColor"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">Positivo DataSync</div>
+        <div class="brand-subtitle">Importador de Borderôs</div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <div class="nav-item active" id="nav-pdf" onclick="mudarAba('pdf')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 2h9l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="currentColor" stroke-width="1.6"/><path d="M9 13h6M9 16h6M9 10h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span>Arquivos PDF</span>
+        <span class="badge-count" id="contador-pdfs" style="display:none">0</span>
+      </div>
+      <div class="nav-item" id="nav-planilha" onclick="mudarAba('planilha')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M9 9v11" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span>Planilha Excel</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn-primary" id="botao-processar" onclick="executarProcessamento()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <span id="texto-botao">Executar Processamento</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main-wrap">
+    <header class="topbar">
+      <span class="tag">Aplicativo Local</span>
+      <span class="tag" id="tag-planilha">Nenhuma planilha selecionada</span>
+    </header>
+
+    <main class="content">
+
+      <!-- Aba PDFs -->
+      <div class="tab-panel" id="tab-pdf">
+        <h1>Importação de Arquivos PDF</h1>
+        <p class="desc">Selecione os borderôs para extrair os títulos automaticamente.</p>
+
+        <div class="dropzone" ondragover="event.preventDefault(); this.classList.add('dragover')"
+             ondragleave="this.classList.remove('dragover')"
+             ondrop="event.preventDefault(); this.classList.remove('dragover'); selecionarPdfs()"
+             onclick="selecionarPdfs()">
+          <div class="icon-circle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 2h9l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="currentColor" stroke-width="1.6"/></svg>
+          </div>
+          <div class="titulo">Clique para selecionar os PDFs</div>
+          <div class="subtitulo">Suporta: .pdf • múltiplos arquivos</div>
+          <button class="btn-outline" onclick="event.stopPropagation(); selecionarPdfs()">Procurar Arquivos</button>
+        </div>
+
+        <div class="contagem" id="contagem-pdfs">Nenhum arquivo selecionado</div>
+        <div class="chips-container" id="lista-pdfs"></div>
+      </div>
+
+      <!-- Aba Planilha -->
+      <div class="tab-panel" id="tab-planilha" style="display:none">
+        <h1>Planilha Excel</h1>
+        <p class="desc">Selecione a planilha onde os títulos serão importados.</p>
+
+        <div class="dropzone" ondragover="event.preventDefault(); this.classList.add('dragover')"
+             ondragleave="this.classList.remove('dragover')"
+             ondrop="event.preventDefault(); this.classList.remove('dragover'); selecionarPlanilha()"
+             onclick="selecionarPlanilha()">
+          <div class="icon-circle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M9 9v11" stroke="currentColor" stroke-width="1.6"/></svg>
+          </div>
+          <div class="titulo">Clique para selecionar a planilha</div>
+          <div class="subtitulo">Formatos suportados: .xlsm, .xlsx, .xls</div>
+          <button class="btn-outline" onclick="event.stopPropagation(); selecionarPlanilha()">Procurar Planilha</button>
+        </div>
+
+        <div class="chips-container" id="lista-planilha"></div>
+      </div>
+
+      <!-- Console (sempre visível) -->
+      <section class="console-section">
+        <div class="console-header">
+          <span>Console do Sistema</span>
+          <span class="badge" id="badge-status">Aguardando</span>
+        </div>
+        <div class="progress-container" id="progresso-container">
+          <div class="progress-track"><div class="progress-fill" id="progresso-fill"></div></div>
+          <div class="progress-label" id="progresso-texto"></div>
+        </div>
+        <div class="console" id="console"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  let pdfs = [];
+  let planilha = null;
+  let processando = false;
+
+  function mudarAba(aba) {
+    document.getElementById('tab-pdf').style.display = aba === 'pdf' ? 'flex' : 'none';
+    document.getElementById('tab-planilha').style.display = aba === 'planilha' ? 'flex' : 'none';
+    document.getElementById('nav-pdf').classList.toggle('active', aba === 'pdf');
+    document.getElementById('nav-planilha').classList.toggle('active', aba === 'planilha');
+  }
+
+  function escapeHtml(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto;
+    return div.innerHTML;
+  }
+
+  async function selecionarPdfs() {
+    pdfs = await window.pywebview.api.selecionar_pdfs();
+    renderPdfs();
+  }
+
+  async function removerPdf(idx) {
+    pdfs = await window.pywebview.api.remover_pdf(idx);
+    renderPdfs();
+  }
+
+  function renderPdfs() {
+    const lista = document.getElementById('lista-pdfs');
+    lista.innerHTML = '';
+
+    pdfs.forEach((nome, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.innerHTML = `<span>${escapeHtml(nome)}</span><button onclick="removerPdf(${idx})">&times;</button>`;
+      lista.appendChild(chip);
+    });
+
+    const contador = document.getElementById('contagem-pdfs');
+    contador.textContent = pdfs.length
+      ? `${pdfs.length} arquivo(s) selecionado(s)`
+      : 'Nenhum arquivo selecionado';
+
+    const badgeNav = document.getElementById('contador-pdfs');
+    if (pdfs.length) {
+      badgeNav.style.display = 'inline-block';
+      badgeNav.textContent = pdfs.length;
+    } else {
+      badgeNav.style.display = 'none';
+    }
+  }
+
+  async function selecionarPlanilha() {
+    const nome = await window.pywebview.api.selecionar_planilha();
+    planilha = nome;
+    renderPlanilha();
+  }
+
+  async function removerPlanilha() {
+    await window.pywebview.api.remover_planilha();
+    planilha = null;
+    renderPlanilha();
+  }
+
+  function renderPlanilha() {
+    const lista = document.getElementById('lista-planilha');
+    const tag = document.getElementById('tag-planilha');
+
+    if (planilha) {
+      lista.innerHTML = `<div class="chip"><span>${escapeHtml(planilha)}</span><button onclick="removerPlanilha()">&times;</button></div>`;
+      tag.textContent = 'Planilha: ' + planilha;
+    } else {
+      lista.innerHTML = '';
+      tag.textContent = 'Nenhuma planilha selecionada';
+    }
+  }
+
+  function appendLog(mensagem) {
+    const console_el = document.getElementById('console');
+    const linha = document.createElement('div');
+    linha.textContent = mensagem;
+    console_el.appendChild(linha);
+    console_el.scrollTop = console_el.scrollHeight;
+  }
+
+  function atualizarProgresso(atual, total, rotulo) {
+    const container = document.getElementById('progresso-container');
+    const pct = total > 0 ? Math.round((atual / total) * 100) : 0;
+
+    container.style.display = 'flex';
+    document.getElementById('progresso-fill').style.width = pct + '%';
+    document.getElementById('progresso-texto').textContent = `${rotulo} (${atual}/${total})`;
+  }
+
+  function esconderProgresso() {
+    document.getElementById('progresso-container').style.display = 'none';
+  }
+
+  function setProcessando(valor) {
+    processando = valor;
+    document.getElementById('botao-processar').disabled = valor;
+    document.getElementById('texto-botao').textContent = valor ? 'Processando...' : 'Executar Processamento';
+    document.getElementById('badge-status').textContent = valor ? 'Executando' : 'Aguardando';
+  }
+
+  async function executarProcessamento() {
+    if (processando) return;
+
+    document.getElementById('console').innerHTML = '';
+    esconderProgresso();
+    setProcessando(true);
+
+    const resposta = await window.pywebview.api.processar();
+
+    if (!resposta.ok) {
+      appendLog('[ERRO] ' + resposta.mensagem);
+      esconderProgresso();
+      setProcessando(false);
+    }
+    // se resposta.ok, aguardamos processoFinalizado() ser chamado pelo Python
+  }
+
+  function processoFinalizado(resultado) {
+    setProcessando(false);
+
+    if (!resultado.ok) {
+      alert('Erro: ' + resultado.mensagem);
+      return;
+    }
+
+    let msg = `${resultado.importado} de ${resultado.total} título(s) importado(s) com sucesso.`;
+
+    if (resultado.erros_leitura || resultado.erros_importacao) {
+      msg += `\n\n${resultado.erros_leitura} PDF(s) com erro de leitura, ${resultado.erros_importacao} título(s) com erro na importação.\nVeja o console para detalhes.`;
+    }
+
+    alert(msg);
+  }
+
+  window.addEventListener('pywebviewready', () => {
+    appendLog('Sistema pronto. Selecione os PDFs e a planilha para começar.');
+  });
+</script>
+</body>
+</html>

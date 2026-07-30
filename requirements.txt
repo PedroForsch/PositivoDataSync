@@ -1,0 +1,4 @@
+pdfplumber
+xlwings
+pywebview
+pythonnet
